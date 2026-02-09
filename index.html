@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Echo Layer 3D – Touch Panel</title>
+
+<style>
+:root{
+  --bg:#0a0e17;
+  --panel:#141c33;
+  --accent:#00b4ff;
+  --hot:#ff6b6b;
+  --bed:#ffb84d;
+  --text:#eaf2ff;
+}
+
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:radial-gradient(circle at top,#1a2450,var(--bg));
+  color:var(--text);
+  font-family:Arial,Helvetica,sans-serif;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+/* ===== BOOT SCREEN ===== */
+#boot{
+  position:fixed;
+  inset:0;
+  background:#05070c;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  font-size:22px;
+  letter-spacing:3px;
+  z-index:999;
+}
+
+#boot span{
+  margin-top:12px;
+  font-size:14px;
+  opacity:.6;
+}
+
+.hidden{display:none;}
+
+/* ===== DASHBOARD ===== */
+.dashboard{
+  width:1024px;
+  height:600px;
+  background:linear-gradient(145deg,#161f3f,#0c1124);
+  border-radius:18px;
+  box-shadow:0 30px 60px rgba(0,0,0,.7);
+  display:grid;
+  grid-template-columns:280px 1fr;
+  overflow:hidden;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar{
+  background:linear-gradient(180deg,#111a38,#090e1f);
+  padding:20px;
+}
+
+.sidebar h2{
+  margin:10px 0 20px;
+}
+
+.btn{
+  width:100%;
+  padding:18px;
+  margin-bottom:14px;
+  font-size:18px;
+  border:none;
+  border-radius:14px;
+  background:linear-gradient(145deg,#1d2a55,#0b1124);
+  color:var(--text);
+  box-shadow:0 8px 18px rgba(0,0,0,.6);
+}
+
+.btn:active{
+  transform:translateY(4px);
+  box-shadow:inset 0 6px 12px rgba(0,0,0,.8);
+}
+
+/* ===== MAIN ===== */
+.main{
+  padding:20px;
+  display:grid;
+  grid-template-rows:auto 1fr;
+  gap:16px;
+}
+
+/* ===== GRAPH ===== */
+.graph{
+  background:#070b18;
+  border-radius:14px;
+  padding:10px;
+}
+
+canvas{width:100%;height:100%;}
+
+/* ===== PRINTER ===== */
+.printer{
+  position:relative;
+  background:#040710;
+  border-radius:14px;
+  overflow:hidden;
+}
+
+.bed{
+  position:absolute;
+  bottom:0;
+  width:100%;
+  height:12px;
+  background:linear-gradient(90deg,#444,#888);
+}
+
+.nozzle{
+  position:absolute;
+  top:20px;
+  left:50%;
+  width:30px;
+  height:30px;
+  background:linear-gradient(145deg,#bbb,#666);
+  border-radius:6px;
+  transform:translateX(-50%);
+  animation:move 3s infinite alternate ease-in-out;
+}
+
+@keyframes move{
+  0%{left:20%;}
+  100%{left:80%;}
+}
+
+/* ===== STATUS ===== */
+.status{
+  background:linear-gradient(145deg,#141d3d,#0a1024);
+  border-radius:14px;
+  padding:16px;
+  font-size:16px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- BOOT SCREEN -->
+<div id="boot">
+  ECHO LAYER 3D
+  <span>Initializing firmware…</span>
+</div>
+
+<div class="dashboard hidden" id="ui">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <h2>CONTROL</h2>
+    <button class="btn">Home Axes</button>
+    <button class="btn">Heat Nozzle</button>
+    <button class="btn">Heat Bed</button>
+    <button class="btn">Fan ON</button>
+    <button class="btn">Emergency Stop</button>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <div class="graph">
+      <canvas id="tempGraph"></canvas>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 280px;gap:16px;">
+      <div class="printer">
+        <div class="nozzle"></div>
+        <div class="bed"></div>
+      </div>
+
+      <div class="status">
+        <strong>Status</strong><br><br>
+        Nozzle: <span id="nTemp">200</span>°C<br>
+        Bed: <span id="bTemp">60</span>°C<br>
+        Mode: Printing<br>
+        Touch Mode: ON
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ===== BOOT DELAY ===== */
+setTimeout(()=>{
+  document.getElementById("boot").classList.add("hidden");
+  document.getElementById("ui").classList.remove("hidden");
+},2500);
+
+/* ===== TEMP GRAPH ===== */
+const canvas=document.getElementById("tempGraph");
+const ctx=canvas.getContext("2d");
+canvas.width=700;
+canvas.height=160;
+
+let nozzle=190, bed=55, t=0;
+
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle="#00b4ff";
+  ctx.beginPath();
+  for(let x=0;x<canvas.width;x++){
+    let y=80+Math.sin((x+t)/40)*30;
+    if(x===0)ctx.moveTo(x,y);
+    else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+  t+=2;
+
+  nozzle+=Math.random()*2-1;
+  bed+=Math.random()*1-0.5;
+  document.getElementById("nTemp").textContent=nozzle.toFixed(0);
+  document.getElementById("bTemp").textContent=bed.toFixed(0);
+}
+setInterval(draw,100);
+</script>
+
+</body>
+</html>
